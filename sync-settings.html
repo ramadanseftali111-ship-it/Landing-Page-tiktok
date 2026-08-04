@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayar Senkronizasyonu</title>
+<script src="site-config.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    font-family: Arial, sans-serif; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+.container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 30px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+h1 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 24px;
+    text-align: center;
+}
+.subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+    text-align: center;
+}
+.section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+.section h2 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin: 10px 0;
+}
+.btn:active {
+    transform: scale(0.98);
+}
+textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: monospace;
+    resize: vertical;
+    margin-top: 10px;
+}
+.success {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    display: none;
+    font-weight: bold;
+}
+.success.show {
+    display: block;
+}
+.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 15px;
+}
+.home-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #000;
+    color: #fff;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+
+<button class="home-btn" onclick="window.location.href='ana-sayfa.html'">🏠</button>
+
+<div class="container">
+    <h1>⚙️ Ayar Senkronizasyonu</h1>
+    <p class="subtitle">Admin-1 ayarlarını telefona aktarın</p>
+
+    <!-- PC TARAFINDA -->
+    <div class="section">
+        <h2>📱 1. PC'de: Ayarları Kopyala</h2>
+        <button class="btn" onclick="copySettings()">📋 Admin-1 Ayarlarını Kopyala</button>
+        <textarea id="settingsText" readonly placeholder="Ayarlar buraya gelecek..."></textarea>
+        <div class="info">
+            👆 Bu metni kopyalayıp WhatsApp/Telegram ile telefona gönderin
+        </div>
+    </div>
+
+    <!-- TELEFON TARAFINDA -->
+    <div class="section">
+        <h2>📲 2. Telefonda: Ayarları Yapıştır</h2>
+        <textarea id="pasteSettings" placeholder="Kopyaladığınız ayarları buraya yapıştırın..."></textarea>
+        <button class="btn" onclick="applySettings()">✅ Ayarları Uygula</button>
+        <div class="success" id="successMsg">
+            ✅ Ayarlar başarıyla uygulandı! Sayfa 2 saniye sonra yenilenecek...
+        </div>
+    </div>
+</div>
+
+<script>
+// Admin-1 ayarlarını topla
+function collectSettings() {
+    var settings = {
+        banner_bg: localStorage.getItem(SITE_ID + '_admin1_banner_bg_color') || '#000000',
+        banner_text: localStorage.getItem(SITE_ID + '_admin1_banner_text_color') || '#ffffff',
+        siparis_bg: localStorage.getItem(SITE_ID + '_admin1_siparis_seridi_bg_color') || '#28a745',
+        siparis_text: localStorage.getItem(SITE_ID + '_admin1_siparis_seridi_text_color') || '#ffffff',
+        urun_adi: localStorage.getItem(SITE_ID + '_admin1_genel_urun_adi') || '',
+        seo_aciklama: localStorage.getItem(SITE_ID + '_admin1_seo_aciklamasi') || '',
+        site_id: SITE_ID
+    };
+    return settings;
+}
+
+// Ayarları kopyala
+function copySettings() {
+    var settings = collectSettings();
+    var settingsJSON = JSON.stringify(settings, null, 2);
+    
+    document.getElementById('settingsText').value = settingsJSON;
+    
+    // Otomatik seç
+    document.getElementById('settingsText').select();
+    document.getElementById('settingsText').setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        alert('✅ Ayarlar kopyalandı!\n\nŞimdi WhatsApp/Telegram ile telefona gönderin.');
+    } catch (err) {
+        alert('⚠️ Otomatik kopyalama başarısız.\n\nLütfen metni manuel olarak kopyalayın.');
+    }
+    
+    console.log('✅ Ayarlar hazır:', settings);
+}
+
+// Ayarları uygula
+function applySettings() {
+    var settingsText = document.getElementById('pasteSettings').value.trim();
+    
+    if (!settingsText) {
+        alert('❌ Lütfen önce ayarları yapıştırın!');
+        return;
+    }
+    
+    try {
+        var settings = JSON.parse(settingsText);
+        
+        // SITE_ID'leri normalize et
+        var normalizedSiteId = settings.site_id.replace(/^www_/i, '');
+        var currentSiteId = SITE_ID.replace(/^www_/i, '');
+        
+        console.log('📝 ID Karşılaştırma:', {
+            gelen: normalizedSiteId,
+            suanki: currentSiteId,
+            eslesiyor: normalizedSiteId === currentSiteId
+        });
+        
+        // HER İKİ SITE_ID İÇİN KAYDET
+        var ids = [normalizedSiteId, SITE_ID, currentSiteId, settings.site_id];
+        ids = [...new Set(ids)]; // Tekrarları kaldır
+        
+        ids.forEach(function(id) {
+            localStorage.setItem(id + '_admin1_banner_bg_color', settings.banner_bg);
+            localStorage.setItem(id + '_admin1_banner_text_color', settings.banner_text);
+            localStorage.setItem(id + '_admin1_siparis_seridi_bg_color', settings.siparis_bg);
+            localStorage.setItem(id + '_admin1_siparis_seridi_text_color', settings.siparis_text);
+            localStorage.setItem(id + '_admin1_genel_urun_adi', settings.urun_adi);
+            localStorage.setItem(id + '_admin1_seo_aciklamasi', settings.seo_aciklama);
+            console.log('✅ Kaydedildi:', id);
+        });
+        
+        console.log('✅ Tüm ayarlar kaydedildi:', settings);
+        
+        // Başarı mesajı
+        document.getElementById('successMsg').classList.add('show');
+        
+        // 2 saniye sonra yenile
+        setTimeout(function() {
+            window.location.href = 'index.html';
+        }, 2000);
+        
+    } catch (error) {
+        alert('❌ Hata: Geçersiz format!\n\n' + error.message);
+        console.error('❌ Parse hatası:', error);
+    }
+}
+
+// Sayfa yüklenince
+window.onload = function() {
+    console.log('📦 SITE_ID:', SITE_ID);
+    var settings = collectSettings();
+    console.log('📦 Mevcut ayarlar:', settings);
+    document.getElementById('settingsText').value = JSON.stringify(settings, null, 2);
+};
+</script>
+
+</body>
+</html>
